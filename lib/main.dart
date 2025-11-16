@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:rent_a_cart/pages/dashboarding_main_page.dart';
 import 'package:rent_a_cart/pages/onboarding_page.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:rent_a_cart/core/theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,33 +14,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        textTheme: GoogleFonts.plusJakartaSansTextTheme().copyWith(
-          headlineLarge: GoogleFonts.plusJakartaSans(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          headlineMedium: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-          ),
-          headlineSmall: GoogleFonts.plusJakartaSans(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: Colors.white,
-          ),
-          bodySmall: GoogleFonts.plusJakartaSans(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: Colors.black,
-          ),
-        ),
-      ),
-      home: const OnboardingPage(),
+      title: 'Rent a Cart',
+      theme: AppTheme.lightTheme,
+      home: const DashboardMainPage(),
     );
   }
 }

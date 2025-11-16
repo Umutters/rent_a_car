@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rent_a_cart/core/theme/app_colors.dart';
 
 class NearbyHeader extends StatelessWidget {
   final VoidCallback? onSeeAll;
@@ -15,7 +16,7 @@ class NearbyHeader extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textPrimary,
           ),
         ),
         TextButton(
@@ -25,7 +26,7 @@ class NearbyHeader extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFFFFC107),
+              color: AppColors.accent,
             ),
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rent_a_cart/core/theme/app_colors.dart';
 
 class DashboardHeader extends StatelessWidget {
   final String location;
@@ -23,13 +24,17 @@ class DashboardHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.location_on, size: 14, color: Colors.white70),
+                const Icon(
+                  Icons.location_on,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   'My Location',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: Colors.white70,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -40,7 +45,7 @@ class DashboardHeader extends StatelessWidget {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppColors.textPrimary,
               ),
             ),
           ],
@@ -48,15 +53,15 @@ class DashboardHeader extends StatelessWidget {
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.tune, color: Colors.white),
+              icon: const Icon(Icons.tune, color: AppColors.iconLight),
               onPressed: onFilterTap,
             ),
             GestureDetector(
               onTap: onProfileTap,
               child: const CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.white24,
-                child: Icon(Icons.person, color: Colors.white),
+                backgroundColor: AppColors.overlay,
+                child: Icon(Icons.person, color: AppColors.iconLight),
               ),
             ),
           ],

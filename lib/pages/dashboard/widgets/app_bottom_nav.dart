@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rent_a_cart/core/theme/app_colors.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -13,7 +14,7 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF2C2C2C),
+        color: AppColors.backgroundDark,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -24,8 +25,8 @@ class AppBottomNav extends StatelessWidget {
         onTap: onChanged,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
-        selectedItemColor: const Color(0xFFFFC107),
-        unselectedItemColor: Colors.grey[600],
+        selectedItemColor: AppColors.accent,
+        unselectedItemColor: AppColors.iconGrey,
         elevation: 0,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // retained for any remaining direct text usage
 import 'package:rent_a_cart/pages/dashboard/models/car.dart';
+import 'package:rent_a_cart/core/theme/app_colors.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/dashboard_header.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/greeting_section.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/filter_bar.dart';
@@ -27,14 +27,14 @@ class _DashboardMainPageState extends State<DashboardMainPage> {
       speed: '250 km/h',
       fuel: '8.9 L',
       location: 'Biscayne Boulevard',
-      imageColor: Color(0xFFE0E0E0),
+      imageColor: AppColors.backgroundLight,
     ),
     Car(
       name: 'Chevrolet Tahoe',
       speed: '220 km/h',
       fuel: '7 L',
       location: 'Margaret Pace Park',
-      imageColor: Color(0xFFE0E0E0),
+      imageColor: AppColors.backgroundLight,
     ),
   ];
 
@@ -42,13 +42,8 @@ class _DashboardMainPageState extends State<DashboardMainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            colors: [Colors.white, Color(0xFF1976D2)],
-            center: Alignment.topRight,
-            radius: 1.0,
-            stops: [0.0, 1.0],
-          ),
+        decoration: const BoxDecoration(
+          gradient: AppColors.primaryRadialGradient,
         ),
         child: SafeArea(
           child: SingleChildScrollView(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rent_a_cart/core/theme/app_colors.dart';
 import '../models/car.dart';
 
 class CarCard extends StatelessWidget {
@@ -11,11 +12,11 @@ class CarCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.cardShadow,
             spreadRadius: 1,
             blurRadius: 12,
             offset: const Offset(0, 2),
@@ -36,23 +37,27 @@ class CarCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.speed, size: 16, color: Colors.grey[600]),
+              Icon(Icons.speed, size: 16, color: AppColors.textGrey),
               const SizedBox(width: 4),
               Text(
                 car.speed,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: AppColors.textGrey,
                 ),
               ),
               const SizedBox(width: 16),
-              Icon(Icons.local_gas_station, size: 16, color: Colors.grey[600]),
+              Icon(
+                Icons.local_gas_station,
+                size: 16,
+                color: AppColors.textGrey,
+              ),
               const SizedBox(width: 4),
               Text(
                 car.fuel,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: AppColors.textGrey,
                 ),
               ),
             ],
@@ -68,7 +73,7 @@ class CarCard extends StatelessWidget {
               child: Icon(
                 Icons.directions_car,
                 size: 60,
-                color: Colors.grey[400],
+                color: AppColors.iconGrey,
               ),
             ),
           ),
@@ -82,13 +87,17 @@ class CarCard extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.location_on, size: 14, color: Colors.white),
+                const Icon(
+                  Icons.location_on,
+                  size: 14,
+                  color: AppColors.iconLight,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   car.location,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],

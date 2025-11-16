@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rent_a_cart/core/theme/app_colors.dart';
 
 class GreetingSection extends StatelessWidget {
   final String username;
@@ -15,7 +16,7 @@ class GreetingSection extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -23,7 +24,7 @@ class GreetingSection extends StatelessWidget {
           'Time to hit the road! Select a car that matches your style.',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            color: Colors.white70,
+            color: AppColors.textSecondary,
           ),
         ),
       ],

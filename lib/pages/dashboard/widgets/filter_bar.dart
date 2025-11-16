@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rent_a_cart/core/theme/app_colors.dart';
 
 class FilterBar extends StatelessWidget {
   final List<String> filters;
@@ -38,7 +39,9 @@ class FilterBar extends StatelessWidget {
                 child: Icon(
                   Icons.directions_car,
                   size: 16,
-                  color: isSelected ? Colors.black : Colors.white70,
+                  color: isSelected
+                      ? AppColors.textDark
+                      : AppColors.textSecondary,
                 ),
               ),
             Text(label),
@@ -46,8 +49,8 @@ class FilterBar extends StatelessWidget {
         ),
         selected: isSelected,
         onSelected: (_) => onSelected(label),
-        backgroundColor: Colors.white.withOpacity(0.85),
-        selectedColor: const Color(0xFFFFC107),
+        backgroundColor: AppColors.backgroundWhite.withOpacity(0.85),
+        selectedColor: AppColors.accent,
         labelStyle: GoogleFonts.plusJakartaSans(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -56,7 +59,7 @@ class FilterBar extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: isSelected ? const Color(0xFFFFC107) : Colors.white24,
+            color: isSelected ? AppColors.accent : AppColors.overlayLight,
           ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
