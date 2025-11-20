@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:rent_a_cart/pages/dashboarding_main_page.dart';
-import 'package:rent_a_cart/pages/onboarding_page.dart';
 import 'package:rent_a_cart/core/theme/app_theme.dart';
+import 'package:rent_a_cart/test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:rent_a_cart/pages/login_page.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://iwiyqhdohaxjkedkzgec.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3aXlxaGRvaGF4amtlZGt6Z2VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMzc0NDMsImV4cCI6MjA3ODgxMzQ0M30.qTweojcTKt8bNqpw-uzTVFxNH6joaKO7OrKH_HXAP6U',
+  );
+
   runApp(const MyApp());
 }
+
+final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -16,54 +27,20 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Rent a Cart',
       theme: AppTheme.lightTheme,
-      home: const DashboardMainPage(),
+      home: TestPage(future: supabase), // _getInitialPage(),
     );
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  Widget _getInitialPage() {
+    // Uygulama açılışında session kontrolüS
+    final session = supabase.auth.currentSession;
 
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
-    );
+    if (session != null) {
+      // Kullanıcı zaten giriş yapmış, direkt dashboard'a git
+      return const DashboardMainPage();
+    } else {
+      // Giriş yapılmamış, login sayfasına git
+      return const LoginPage();
+    }
   }
 }

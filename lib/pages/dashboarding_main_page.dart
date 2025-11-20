@@ -23,14 +23,24 @@ class _DashboardMainPageState extends State<DashboardMainPage> {
 
   final List<Car> _cars = const [
     Car(
-      name: 'Range Rover Sport',
+      brand: 'Range Rover',
+      model: 'Sport',
+      year: '2020',
+      licensePlate: 'XYZ-123',
+      dailyRate: 0,
+      status: 'available',
       speed: '250 km/h',
       fuel: '8.9 L',
       location: 'Biscayne Boulevard',
       imageColor: AppColors.backgroundLight,
     ),
     Car(
-      name: 'Chevrolet Tahoe',
+      brand: 'Chevrolet',
+      model: 'Tahoe',
+      year: '2021',
+      licensePlate: '123-ABC',
+      dailyRate: 0,
+      status: 'available',
       speed: '220 km/h',
       fuel: '7 L',
       location: 'Margaret Pace Park',
@@ -41,6 +51,7 @@ class _DashboardMainPageState extends State<DashboardMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: AppColors.primaryRadialGradient,

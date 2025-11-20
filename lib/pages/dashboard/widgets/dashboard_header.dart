@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
@@ -58,10 +59,23 @@ class DashboardHeader extends StatelessWidget {
             ),
             GestureDetector(
               onTap: onProfileTap,
-              child: const CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.overlay,
-                child: Icon(Icons.person, color: AppColors.iconLight),
+              child: ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color.fromRGBO(255, 255, 255, 0.15),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color.fromRGBO(255, 255, 255, 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Icon(Icons.person, color: AppColors.iconLight),
+                  ),
+                ),
               ),
             ),
           ],

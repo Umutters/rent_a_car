@@ -1,6 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
+import 'package:rent_a_cart/core/widgets/animations/scale_button.dart';
 
 class FilterBar extends StatelessWidget {
   final List<String> filters;
@@ -27,42 +29,60 @@ class FilterBar extends StatelessWidget {
 
   Widget _chip(BuildContext context, String label) {
     final isSelected = label == selected;
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      child: ChoiceChip(
-        label: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (label != 'All')
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Icon(
-                  Icons.directions_car,
-                  size: 16,
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: ScaleButton(
+        onPressed: () => onSelected(label),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color.fromRGBO(255, 255, 255, 0.2)
+                    : const Color.fromRGBO(255, 255, 255, 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
                   color: isSelected
-                      ? AppColors.textDark
-                      : AppColors.textSecondary,
+                      ? AppColors.accent
+                      : const Color.fromRGBO(255, 255, 255, 0.2),
+                  width: isSelected ? 2 : 1,
                 ),
               ),
-            Text(label),
-          ],
-        ),
-        selected: isSelected,
-        onSelected: (_) => onSelected(label),
-        backgroundColor: AppColors.backgroundWhite.withOpacity(0.85),
-        selectedColor: AppColors.accent,
-        labelStyle: GoogleFonts.plusJakartaSans(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: isSelected ? Colors.black : Colors.white70,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isSelected ? AppColors.accent : AppColors.overlayLight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (label != 'All')
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Icon(
+                          Icons.directions_car,
+                          size: 16,
+                          color: isSelected
+                              ? AppColors.textPrimary
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    Text(
+                      label,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }
