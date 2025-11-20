@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Rent a Cart',
       theme: AppTheme.lightTheme,
-      home: TestPage(future: supabase), // _getInitialPage(),
+      home: TestPage(supabaseClient: supabase), // _getInitialPage(),
     );
   }
 
