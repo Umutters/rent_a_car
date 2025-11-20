@@ -1,5 +1,5 @@
 import 'dart:async';
-//import 'dart:io'; // Platform kontrolü için
+//import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -12,7 +12,6 @@ import 'package:rent_a_cart/pages/login/widgets/login_divider.dart';
 import 'package:rent_a_cart/pages/login/widgets/social_login_button.dart';
 import 'package:rent_a_cart/pages/login/widgets/sign_up_prompt.dart';
 
-// Çakışmayı önlemek için 'g_sign_in' alias'ını kullanıyoruz
 import 'package:google_sign_in/google_sign_in.dart' as g_sign_in;
 
 class LoginPage extends StatefulWidget {
@@ -27,7 +26,6 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // GoogleSignIn instance'ına erişim (Singleton yapısı)
   final g_sign_in.GoogleSignIn _googleSignIn = g_sign_in.GoogleSignIn.instance;
 
   bool _isPasswordVisible = false;
@@ -37,9 +35,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    // Google Sign In'i başlatıyoruz.
     _googleSignIn.initialize(
-      // Supabase için serverClientId ZORUNLUDUR.
       serverClientId:
           '743286900860-ss48fqp9cl44479s7cp7b9iekvritcro.apps.googleusercontent.com',
     );
@@ -147,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Icons.apple,
                       label: 'Continue with Apple',
                       onPressed: () {
-                        // Apple Sign In logic
+                        // Apple Sign In 
                       },
                     ),
                     const SizedBox(height: 32),
@@ -168,33 +164,24 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // v7 sürümünde 'signIn()' yerine 'authenticate()' kullanıyoruz.
       final googleUser = await _googleSignIn.authenticate();
 
-      // Google'dan kimlik doğrulama detaylarını al
       final googleAuth = googleUser.authentication;
 
-      // DÜZELTME: AccessToken, v7 paketinde tanımlı olmayabilir.
-      // Supabase giriş işlemi için sadece idToken yeterlidir.
       final idToken = googleAuth.idToken;
 
-      // Access Token'ı okumaya çalışmıyoruz çünkü hata veriyor.
-      // final accessToken = googleAuth.accessToken; <-- KALDIRILDI
 
       if (idToken == null) {
-        // serverClientId ayarlanmazsa idToken null döner.
         throw 'No ID Token found. Make sure you set the serverClientId correctly.';
       }
 
-      // Supabase'e giriş yap
       await Supabase.instance.client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: idToken,
-        accessToken: null, // Access token opsiyoneldir, null geçiyoruz.
+        accessToken: null, 
       );
 
       if (mounted) {
-        // Başarılı giriş sonrası ana sayfaya yönlendir
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const DashboardMainPage()),
         );
