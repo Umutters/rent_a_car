@@ -8,9 +8,8 @@ import 'package:rent_a_cart/pages/login_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
-    url: 'https://iwiyqhdohaxjkedkzgec.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3aXlxaGRvaGF4amtlZGt6Z2VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMzc0NDMsImV4cCI6MjA3ODgxMzQ0M30.qTweojcTKt8bNqpw-uzTVFxNH6joaKO7OrKH_HXAP6U',
+    url: '...',
+    anonKey:'...'
   );
 
   runApp(const MyApp());
