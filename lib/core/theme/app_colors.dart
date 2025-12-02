@@ -33,6 +33,9 @@ class AppColors {
   static const Color warning = Color(0xFFFF9800);
   static const Color info = Color(0xFF2196F3);
 
+  static const Color background = Color(0xFF1E1E1E);
+  static const Color surface = Color(0xFF2C2C2C);
+
   static const RadialGradient primaryRadialGradient = RadialGradient(
     colors: [gradientStart, gradientEnd],
     center: Alignment.topRight,
