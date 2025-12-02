@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TestPage extends StatefulWidget {
-  final SupabaseClient supabaseClient;
-
-  const TestPage({super.key, required this.supabaseClient});
+  const TestPage({super.key});
 
   @override
   State<TestPage> createState() => _TestPageState();
 }
 
 class _TestPageState extends State<TestPage> {
+  SupabaseClient supabaseClient = Supabase.instance.client;
   List<dynamic> _cars = [];
-  bool _isLoading = true; 
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -22,14 +21,14 @@ class _TestPageState extends State<TestPage> {
 
   Future<void> _fetchCars() async {
     try {
-      final response = await widget.supabaseClient.from('cars').select();
+      final response = await supabaseClient.from('cars').select();
 
       print("GELEN VERİ: $response");
 
       if (mounted) {
         setState(() {
           _cars = response;
-          _isLoading = false; 
+          _isLoading = false;
         });
       }
     } catch (e) {
@@ -54,7 +53,18 @@ class _TestPageState extends State<TestPage> {
               itemCount: _cars.length,
               itemBuilder: (context, index) {
                 final car = _cars[index];
-                return Card(child: Text(""));
+                return Card(
+                  child: ListTile(
+                    leading: car['image_url'] != null
+                        ? Image.network(car['image_url'], width: 48)
+                        : const Icon(Icons.directions_car),
+                    title: Text(car['brand'] ?? 'Marka Yok'),
+                    subtitle: Text(
+                      '${car['model'] ?? ''} - ${car['year'] ?? ''}',
+                    ),
+                    trailing: Text('${car['daily_rate'] ?? ''} ₺'),
+                  ),
+                );
               },
             ),
     );
