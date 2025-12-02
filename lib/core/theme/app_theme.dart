@@ -55,17 +55,14 @@ class AppTheme {
         ),
       ),
 
-      // Icon theme
       iconTheme: const IconThemeData(color: AppColors.iconDark, size: 24),
 
-      // Card theme
       cardTheme: CardThemeData(
         color: AppColors.cardBackground,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
 
-      // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.backgroundWhite,
@@ -81,7 +78,6 @@ class AppTheme {
         style: TextButton.styleFrom(foregroundColor: AppColors.accent),
       ),
 
-      // Bottom Navigation Bar theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.backgroundDark,
         selectedItemColor: AppColors.accent,

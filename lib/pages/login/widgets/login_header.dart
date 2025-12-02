@@ -14,14 +14,12 @@ class LoginHeader extends StatelessWidget {
           duration: const Duration(milliseconds: 800),
           curve: Curves.elasticOut,
           builder: (context, value, child) {
-            return Transform.scale(
-              scale: value,
-              child: child,
-            );
+            return Transform.scale(scale: value, child: child);
           },
-          child: const Icon(
-            Icons.directions_car,
-            size: 80,
+          child: Image.asset(
+            'assets/images/umutters_logo.png',
+            width: 100,
+            height: 100,
             color: AppColors.textPrimary,
           ),
         ),
