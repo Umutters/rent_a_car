@@ -194,6 +194,9 @@ class _LoginPageState extends State<LoginPage> {
         accessToken: null,
       );
 
+      // Sync user to public.users table
+      await _syncUserToPublicTable();
+
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const DashboardMainPage()),
@@ -233,10 +236,15 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
         email: _emailController.text,
       );
-      if (response.session != null && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardMainPage()),
-        );
+
+      if (response.session != null) {
+        await _syncUserToPublicTable();
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const DashboardMainPage()),
+          );
+        }
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -253,6 +261,23 @@ class _LoginPageState extends State<LoginPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _syncUserToPublicTable() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await Supabase.instance.client.from('users').upsert({
+        'id': user.id,
+        'email': user.email,
+        'full_name': user.userMetadata?['full_name'],
+        'avatar_url': user.userMetadata?['avatar_url'],
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    } catch (error) {
+      debugPrint('Error syncing user to public table: $error');
     }
   }
 

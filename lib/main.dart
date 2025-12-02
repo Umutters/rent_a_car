@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Rent a Cart',
       theme: AppTheme.lightTheme,
-      home: const LoginPage(),
+      home: _getInitialPage(),
     );
   }
 

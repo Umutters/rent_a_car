@@ -216,9 +216,15 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (mounted) {
         if (response.session != null) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const DashboardMainPage()),
-          );
+          await _syncUserToPublicTable();
+
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const DashboardMainPage(),
+              ),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -253,6 +259,23 @@ class _SignUpPageState extends State<SignUpPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _syncUserToPublicTable() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await Supabase.instance.client.from('users').upsert({
+        'id': user.id,
+        'email': user.email,
+        'full_name': _nameController.text
+            .trim(), // Use text controller for sign up
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    } catch (error) {
+      debugPrint('Error syncing user to public table: $error');
     }
   }
 }
