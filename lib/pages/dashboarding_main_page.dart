@@ -25,11 +25,29 @@ class _DashboardMainPageState extends State<DashboardMainPage> {
 
   List<Car> _cars = [];
   bool _isLoading = true;
+  String _username = 'Driver';
 
   @override
   void initState() {
     super.initState();
     _fetchCars();
+    _fetchUserProfile();
+  }
+
+  void _fetchUserProfile() {
+    final user = supabase.auth.currentUser;
+    if (user != null) {
+      final metadata = user.userMetadata;
+      if (metadata != null) {
+        String fullName = metadata['full_name'] ?? metadata['name'] ?? '';
+        if (fullName.isNotEmpty) {
+          setState(() {
+            // Get only the first name for a friendlier greeting
+            _username = fullName.split(' ')[0];
+          });
+        }
+      }
+    }
   }
 
   Future<void> _fetchCars() async {
@@ -75,7 +93,7 @@ class _DashboardMainPageState extends State<DashboardMainPage> {
                     onProfileTap: () {},
                   ),
                   const SizedBox(height: 24),
-                  const GreetingSection(username: 'Chris'),
+                  GreetingSection(username: _username),
                   const SizedBox(height: 24),
                   FilterBar(
                     filters: _filters,

@@ -1,5 +1,3 @@
-import 'dart:async';
-//import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,42 +8,31 @@ import 'package:rent_a_cart/pages/login/widgets/custom_text_field.dart';
 import 'package:rent_a_cart/pages/login/widgets/login_button.dart';
 import 'package:rent_a_cart/pages/login/widgets/login_divider.dart';
 import 'package:rent_a_cart/pages/login/widgets/social_login_button.dart';
-import 'package:rent_a_cart/pages/login/widgets/sign_up_prompt.dart';
-import 'package:rent_a_cart/pages/sign_up.dart';
 
-import 'package:google_sign_in/google_sign_in.dart' as g_sign_in;
-
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  final g_sign_in.GoogleSignIn _googleSignIn = g_sign_in.GoogleSignIn.instance;
+  final _confirmPasswordController = TextEditingController();
 
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-
-    _googleSignIn.initialize(
-      serverClientId:
-          '743286900860-ss48fqp9cl44479s7cp7b9iekvritcro.apps.googleusercontent.com',
-    );
-  }
-
-  @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -67,8 +54,22 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const LoginHeader(),
+                    const LoginHeader(
+                      title: 'Create Account',
+                      subtitle: 'Sign up to get started',
+                    ),
                     const SizedBox(height: 48),
+                    CustomTextField(
+                      controller: _nameController,
+                      label: 'Full Name',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
                     CustomTextField(
                       controller: _emailController,
                       label: 'Email',
@@ -114,26 +115,39 @@ class _LoginPageState extends State<LoginPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          _handleSignUp();
-                        },
-                        child: Text(
-                          'Forgot Password?',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirm Password',
+                      obscureText: !_isConfirmPasswordVisible,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: AppColors.textSecondary,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _isConfirmPasswordVisible =
+                                !_isConfirmPasswordVisible;
+                          });
+                        },
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 32),
                     LoginButton(
-                      onPressed: _handleEmailPasswordLogin,
+                      text: 'Sign Up',
+                      onPressed: _handleSignUp,
                       isLoading: _isLoading,
                     ),
                     const SizedBox(height: 18),
@@ -141,26 +155,42 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 20),
                     SocialLoginButton(
                       icon: Icons.g_mobiledata,
-                      label: 'Continue with Google',
-                      onPressed: _handleGoogleSignIn,
-                    ),
-                    const SizedBox(height: 12),
-                    SocialLoginButton(
-                      icon: Icons.apple,
-                      label: 'Continue with Apple',
+                      label: 'Sign up with Google',
                       onPressed: () {
-                        // Apple Sign In
+                        // TODO: Implement Google Sign Up (same as login)
                       },
                     ),
                     const SizedBox(height: 32),
-                    SignUpPrompt(
-                      onSignUpTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const SignUpPage(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Already have an account? ",
+                          style: GoogleFonts.plusJakartaSans(
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
                           ),
-                        );
-                      },
+                          textAlign: TextAlign.center,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Sign In',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -172,32 +202,32 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _handleSignUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
 
     try {
-      final googleUser = await _googleSignIn.authenticate();
-
-      final googleAuth = googleUser.authentication;
-
-      final idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        throw 'No ID Token found. Make sure you set the serverClientId correctly.';
-      }
-
-      await Supabase.instance.client.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: null,
+      final response = await Supabase.instance.client.auth.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        data: {'full_name': _nameController.text.trim()},
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardMainPage()),
-        );
+        if (response.session != null) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const DashboardMainPage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please check your email to confirm your account.'),
+              backgroundColor: AppColors.accent,
+            ),
+          );
+          Navigator.of(context).pop();
+        }
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -225,36 +255,4 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
-
-  Future<void> _handleEmailPasswordLogin() async {
-    setState(() => _isLoading = true);
-    try {
-      final response = await Supabase.instance.client.auth.signInWithPassword(
-        password: _passwordController.text,
-        email: _emailController.text,
-      );
-      if (response.session != null && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardMainPage()),
-        );
-      }
-    } on AuthException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.message),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _handleSignUp() async {}
 }
