@@ -17,16 +17,18 @@ class DashboardHome extends StatefulWidget {
 class _DashboardHomeState extends State<DashboardHome> {
   final SupabaseClient supabase = Supabase.instance.client;
   String _selectedFilter = 'All';
-  final List<String> _filters = const ['All', 'Tesla', 'Mercedes', 'BMW'];
+  List<String> _filters = ['All']; // Dinamik olarak RPC'den çekecek
 
   List<Car> _cars = [];
   bool _isLoading = true;
   String _username = 'Driver';
+  String _currentCity = 'Şehir Seç'; // Şehir bilgisi
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _fetchTopBrands(); // İlk olarak top brands'ı çek
     _fetchCars();
     _fetchUserProfile();
   }
@@ -46,17 +48,62 @@ class _DashboardHomeState extends State<DashboardHome> {
     }
   }
 
+  Future<void> _fetchTopBrands() async {
+    try {
+      print("Top brands RPC'den getiriliyor...");
+      final topBrandsData = await supabase.rpc('get_top_brands');
+      print("Top Brands Verisi: $topBrandsData");
+
+      if (mounted) {
+        setState(() {
+          // RPC sonucundan brand isimleri çıkar
+          List<String> brandNames = ['All'];
+          for (var item in topBrandsData) {
+            brandNames.add(item['brand']);
+          }
+          _filters = brandNames;
+        });
+      }
+    } catch (e) {
+      print("Top brands getirme hatası: $e");
+      // Hata olursa varsayılan filtreleri kullan
+      setState(() {
+        _filters = ['All', 'Tesla', 'Mercedes', 'BMW'];
+      });
+    }
+  }
+
   Future<void> _fetchCars() async {
     try {
-      print("Araçlar getiriliyor...");
-      final response = await supabase.from('cars').select();
+      print("Araçlar getiriliyor... (Seçili Filter: $_selectedFilter)");
+
+      late final response;
+
+      // Eğer "All" seçiliyse tüm araçları, değilse brand'a göre filtrelenmiş araçları çek
+      if (_selectedFilter == 'All') {
+        response = await supabase.from('cars').select();
+      } else {
+        // Seçilen brand'a ait araçları getir
+        response = await supabase
+            .from('cars')
+            .select()
+            .eq('brand', _selectedFilter);
+      }
+
       print("Gelen Araç Verisi: $response");
 
       if (mounted) {
         setState(() {
-          _cars = response.map((carMap) => Car.fromMap(carMap)).toList();
+          _cars = (response as List)
+              .map((carMap) => Car.fromMap(carMap))
+              .toList();
           _isLoading = false;
           _errorMessage = null;
+
+          // İlk araçtan şehir bilgisini al
+          if (_cars.isNotEmpty && _cars.first.location.isNotEmpty) {
+            _currentCity = _cars.first.location;
+          }
         });
       }
     } catch (e) {
@@ -81,7 +128,7 @@ class _DashboardHomeState extends State<DashboardHome> {
             children: [
               const SizedBox(height: 16),
               DashboardHeader(
-                location: 'Greenwood Drive, Miami',
+                location: _currentCity.isEmpty ? 'Şehir Seç' : _currentCity,
                 onFilterTap: () {},
                 onProfileTap: () {},
               ),
@@ -91,7 +138,11 @@ class _DashboardHomeState extends State<DashboardHome> {
               FilterBar(
                 filters: _filters,
                 selected: _selectedFilter,
-                onSelected: (f) => setState(() => _selectedFilter = f),
+                onSelected: (f) {
+                  setState(() => _selectedFilter = f);
+                  // Seçim değişince araçları yeniden çek
+                  _fetchCars();
+                },
               ),
               const SizedBox(height: 24),
               const NearbyHeader(),

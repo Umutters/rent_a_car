@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          _handleSignUp();
+                          _showForgotPasswordDialog();
                         },
                         child: Text(
                           'Forgot Password?',
@@ -149,7 +149,11 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Icons.apple,
                       label: 'Continue with Apple',
                       onPressed: () {
-                        // Apple Sign In
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Apple ile giriş yakında eklenecek'),
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 32),
@@ -281,5 +285,115 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _handleSignUp() async {}
+  void _showForgotPasswordDialog() {
+    final resetEmailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Şifre Sıfırlama',
+          style: GoogleFonts.plusJakartaSans(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'E-posta adresinizi girin, şifre sıfırlama bağlantısı göndereceğiz.',
+              style: GoogleFonts.plusJakartaSans(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: resetEmailController,
+              keyboardType: TextInputType.emailAddress,
+              style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary),
+              decoration: InputDecoration(
+                labelText: 'E-posta',
+                labelStyle: GoogleFonts.plusJakartaSans(
+                  color: AppColors.textSecondary,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.accent),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'İptal',
+              style: GoogleFonts.plusJakartaSans(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = resetEmailController.text.trim();
+              if (email.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Lütfen e-posta adresinizi girin'),
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(context);
+              await _sendPasswordResetEmail(email);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+            child: Text(
+              'Gönder',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendPasswordResetEmail(String email) async {
+    try {
+      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 }
