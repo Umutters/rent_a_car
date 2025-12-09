@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
 import 'package:rent_a_cart/gen/assets.gen.dart';
-import 'package:rent_a_cart/pages/dashboarding_main_page.dart';
+import 'package:rent_a_cart/pages/login_page.dart';
+import 'package:rent_a_cart/main.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -135,10 +136,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   width: _currentPage == index ? 24 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color:
-                        _currentPage == index
-                            ? AppColors.textPrimary
-                            : const Color.fromARGB(102, 255, 255, 255),
+                    color: _currentPage == index
+                        ? AppColors.textPrimary
+                        : const Color.fromARGB(102, 255, 255, 255),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -147,7 +147,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_currentPage < 2) {
                     _pageController.animateToPage(
                       _currentPage + 1,
@@ -155,11 +155,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       curve: Curves.easeInOutCubic,
                     );
                   } else {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const DashboardMainPage(),
-                      ),
-                    );
+                    // Mark onboarding as completed
+                    await prefs.setBool('hasSeenOnboarding', true);
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                    }
                   }
                 },
                 style: ButtonStyle(
@@ -185,12 +189,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
             const SizedBox(height: 8),
             Center(
               child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => const DashboardMainPage(),
-                    ),
-                  );
+                onPressed: () async {
+                  // Mark onboarding as completed even when skipping
+                  await prefs.setBool('hasSeenOnboarding', true);
+                  if (context.mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
+                    );
+                  }
                 },
                 child: Text(
                   "skip",

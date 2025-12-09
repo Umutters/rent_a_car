@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:rent_a_cart/pages/dashboarding_main_page.dart';
 import 'package:rent_a_cart/core/theme/app_theme.dart';
-import 'package:rent_a_cart/test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rent_a_cart/pages/login_page.dart';
 import 'package:rent_a_cart/pages/onboarding_page.dart';
-import 'package:rent_a_cart/pages/onboarding_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+late SharedPreferences prefs;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SharedPreferences
+  prefs = await SharedPreferences.getInstance();
+
   await Supabase.initialize(
     url: 'https://iwiyqhdohaxjkedkzgec.supabase.co',
     anonKey:
@@ -34,6 +39,13 @@ class MyApp extends StatelessWidget {
   }
 
   Widget _getInitialPage() {
+    // Check if onboarding has been completed
+    final bool hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+
+    if (!hasSeenOnboarding) {
+      return const OnboardingPage();
+    }
+
     final session = supabase.auth.currentSession;
 
     if (session != null) {

@@ -3,6 +3,9 @@ import 'package:rent_a_cart/core/theme/app_colors.dart';
 import 'package:rent_a_cart/pages/dashboard/dashboard_home.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/app_bottom_nav.dart';
 import 'package:rent_a_cart/pages/favorites_page.dart';
+import 'package:rent_a_cart/pages/messages_page.dart';
+import 'package:rent_a_cart/pages/profile_page.dart';
+import 'package:rent_a_cart/pages/search_page.dart';
 
 class DashboardMainPage extends StatefulWidget {
   const DashboardMainPage({super.key});
@@ -16,16 +19,10 @@ class _DashboardMainPageState extends State<DashboardMainPage> {
 
   final List<Widget> _pages = [
     const DashboardHome(),
-    const Center(
-      child: Text("Arama Sayfası", style: TextStyle(color: Colors.white)),
-    ), // Placeholder
+    const SearchPage(),
     const FavoritesPage(),
-    const Center(
-      child: Text("Mesajlar Sayfası", style: TextStyle(color: Colors.white)),
-    ), // Placeholder
-    const Center(
-      child: Text("Profil Sayfası", style: TextStyle(color: Colors.white)),
-    ), // Placeholder
+    const MessagesPage(),
+    const ProfilePage(),
   ];
 
   @override
