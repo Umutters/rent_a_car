@@ -5,6 +5,7 @@ import 'package:rent_a_cart/test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rent_a_cart/pages/login_page.dart';
 import 'package:rent_a_cart/pages/onboarding_page.dart';
+import 'package:rent_a_cart/pages/onboarding_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

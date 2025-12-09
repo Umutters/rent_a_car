@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
 import 'package:rent_a_cart/pages/dashboard/models/car.dart';
+import 'package:rent_a_cart/pages/booking/date_selection_page.dart';
 
 class CarDetailsPage extends StatelessWidget {
   final Car car;
@@ -191,11 +192,10 @@ class CarDetailsPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: Implement Rent Logic
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Rent functionality coming soon!'),
-                            backgroundColor: AppColors.accent,
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DateSelectionPage(car: car),
                           ),
                         );
                       },
