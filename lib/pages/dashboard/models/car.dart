@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Car {
   final String id; // Changed from int to String to support UUIDs
   final String createdat;
@@ -19,6 +17,15 @@ class Car {
   final String maxSpeed;
   final String acceleration;
 
+  // Ekstra teknik özellikler (car_extras tablosundan)
+  final int? doors;
+  final bool hasAc;
+  final bool hasBluetooth;
+  final bool hasGps;
+  final bool hasSunroof;
+  final bool hasParkingSensors;
+  final bool hasCruiseControl;
+
   const Car({
     required this.id,
     required this.createdat,
@@ -37,10 +44,27 @@ class Car {
     this.engineCapacity = '1.6L',
     this.maxSpeed = '200 km/h',
     this.acceleration = '8.5s',
+    this.doors,
+    this.hasAc = true,
+    this.hasBluetooth = true,
+    this.hasGps = false,
+    this.hasSunroof = false,
+    this.hasParkingSensors = false,
+    this.hasCruiseControl = false,
   });
 
   // Supabase'den gelen Map'ten Car oluşturmak için factory constructor
   factory Car.fromMap(Map<String, dynamic> map) {
+    // car_extras nested object olarak gelebilir (JOIN ile)
+    final extras = map['car_extras'];
+    Map<String, dynamic>? extrasMap;
+
+    if (extras is List && extras.isNotEmpty) {
+      extrasMap = extras[0] as Map<String, dynamic>;
+    } else if (extras is Map<String, dynamic>) {
+      extrasMap = extras;
+    }
+
     return Car(
       id: map['id']?.toString() ?? '',
       createdat: map['created_at']?.toString() ?? '',
@@ -50,17 +74,59 @@ class Car {
       licensePlate: map['license_plate']?.toString() ?? '',
       dailyRate: (num.tryParse(map['daily_rate']?.toString() ?? '') ?? 0)
           .toInt(),
-      status: map['status']?.toString() ?? '',
+      status: map['status']?.toString() ?? 'Available',
       imageurl: map['image_url']?.toString() ?? '',
-      location: map['location']?.toString() ?? 'Miami, FL',
-      transmission: map['transmission']?.toString() ?? 'Automatic',
-      fuelType: map['fuel_type']?.toString() ?? 'Petrol',
-      seats: (num.tryParse(map['seats']?.toString() ?? '') ?? 5).toInt(),
+      location: map['location']?.toString() ?? 'İstanbul',
+      // car_extras'tan veya doğrudan map'ten al
+      transmission:
+          extrasMap?['transmission']?.toString() ??
+          map['transmission']?.toString() ??
+          'Automatic',
+      fuelType:
+          extrasMap?['fuel_type']?.toString() ??
+          map['fuel_type']?.toString() ??
+          'Petrol',
+      seats:
+          (num.tryParse(
+                    extrasMap?['seats']?.toString() ??
+                        map['seats']?.toString() ??
+                        '',
+                  ) ??
+                  5)
+              .toInt(),
       description:
           map['description']?.toString() ?? 'A great car for your daily needs.',
       engineCapacity: map['engine_capacity']?.toString() ?? '2.0L',
       maxSpeed: map['max_speed']?.toString() ?? '220 km/h',
       acceleration: map['acceleration']?.toString() ?? '7.5s',
+      // Ekstra özellikler
+      doors: int.tryParse(extrasMap?['doors']?.toString() ?? ''),
+      hasAc: extrasMap?['has_ac'] == true,
+      hasBluetooth: extrasMap?['has_bluetooth'] == true,
+      hasGps: extrasMap?['has_gps'] == true,
+      hasSunroof: extrasMap?['has_sunroof'] == true,
+      hasParkingSensors: extrasMap?['has_parking_sensors'] == true,
+      hasCruiseControl: extrasMap?['has_cruise_control'] == true,
     );
+  }
+
+  /// Özellik listesini döndürür (UI'da göstermek için)
+  List<String> get featuresList {
+    List<String> features = [];
+    if (hasAc) features.add('Klima');
+    if (hasBluetooth) features.add('Bluetooth');
+    if (hasGps) features.add('GPS');
+    if (hasSunroof) features.add('Sunroof');
+    if (hasParkingSensors) features.add('Park Sensörü');
+    if (hasCruiseControl) features.add('Cruise Control');
+    return features;
+  }
+
+  /// Kısa özellik özeti
+  String get featuresSummary {
+    final features = featuresList;
+    if (features.isEmpty) return 'Standart özellikler';
+    if (features.length <= 3) return features.join(' • ');
+    return '${features.take(3).join(' • ')} +${features.length - 3}';
   }
 }

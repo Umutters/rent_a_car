@@ -126,180 +126,194 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _showFilterSheet() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Filtreler',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setModalState(() {
-                          _selectedFuelType = null;
-                          _selectedTransmission = null;
-                          _priceRange = RangeValues(0, _maxPrice);
-                        });
-                        setState(() {});
-                      },
-                      child: Text(
-                        'Sıfırla',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: AppColors.accent,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Fuel Type
-                Text(
-                  'Yakıt Tipi',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: _fuelTypes.map((fuel) {
-                    final isSelected = _selectedFuelType == fuel;
-                    return ChoiceChip(
-                      label: Text(fuel),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setModalState(() {
-                          _selectedFuelType = selected ? fuel : null;
-                        });
-                      },
-                      selectedColor: AppColors.accent,
-                      labelStyle: GoogleFonts.plusJakartaSans(
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-
-                // Transmission
-                Text(
-                  'Vites',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: _transmissions.map((trans) {
-                    final isSelected = _selectedTransmission == trans;
-                    return ChoiceChip(
-                      label: Text(trans),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setModalState(() {
-                          _selectedTransmission = selected ? trans : null;
-                        });
-                      },
-                      selectedColor: AppColors.accent,
-                      labelStyle: GoogleFonts.plusJakartaSans(
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-
-                // Price Range
-                Text(
-                  'Fiyat Aralığı (Günlük)',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                RangeSlider(
-                  values: _priceRange,
-                  min: 0,
-                  max: _maxPrice,
-                  divisions: 20,
-                  activeColor: AppColors.accent,
-                  labels: RangeLabels(
-                    '${_priceRange.start.round()} ₺',
-                    '${_priceRange.end.round()} ₺',
-                  ),
-                  onChanged: (values) {
-                    setModalState(() {
-                      _priceRange = values;
-                    });
-                  },
-                ),
-                Text(
-                  '${_priceRange.start.round()} ₺ - ${_priceRange.end.round()} ₺',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Apply Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _applyFilters();
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Filtreleri Uygula',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: AppColors.primaryRadialGradient,
             ),
-          );
-        },
-      ),
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Filtreler',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setModalState(() {
+                                  _selectedFuelType = null;
+                                  _selectedTransmission = null;
+                                  _priceRange = RangeValues(0, _maxPrice);
+                                });
+                                setState(() {});
+                              },
+                              child: Text(
+                                'Sıfırla',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: AppColors.accent,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Fuel Type
+                        Text(
+                          'Yakıt Tipi',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: _fuelTypes.map((fuel) {
+                            final isSelected = _selectedFuelType == fuel;
+                            return ChoiceChip(
+                              label: Text(fuel),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setModalState(() {
+                                  _selectedFuelType = selected ? fuel : null;
+                                });
+                              },
+                              selectedColor: AppColors.accent,
+                              backgroundColor: const Color.fromRGBO(255, 255, 255, 0.08),
+                              labelStyle: GoogleFonts.plusJakartaSans(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.accent,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Transmission
+                        Text(
+                          'Vites',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: _transmissions.map((trans) {
+                            final isSelected = _selectedTransmission == trans;
+                            return ChoiceChip(
+                              label: Text(trans),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setModalState(() {
+                                  _selectedTransmission = selected
+                                      ? trans
+                                      : null;
+                                });
+                              },
+                              selectedColor: AppColors.accent,
+                              backgroundColor: const Color.fromRGBO(255, 255, 255, 0.08),
+                              labelStyle: GoogleFonts.plusJakartaSans(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.accent,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Price Range
+                        Text(
+                          'Fiyat Aralığı (Günlük)',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        RangeSlider(
+                          values: _priceRange,
+                          min: 0,
+                          max: _maxPrice,
+                          divisions: 20,
+                          activeColor: AppColors.accent,
+                          labels: RangeLabels(
+                            '${_priceRange.start.round()} ₺',
+                            '${_priceRange.end.round()} ₺',
+                          ),
+                          onChanged: (values) {
+                            setModalState(() {
+                              _priceRange = values;
+                            });
+                          },
+                        ),
+                        Text(
+                          '${_priceRange.start.round()} ₺ - ${_priceRange.end.round()} ₺',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: const Color.fromRGBO(255, 255, 255, 0.8),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Apply Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              _applyFilters();
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.accent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Filtreleri Uygula',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -312,7 +326,6 @@ class _SearchPageState extends State<SearchPage> {
       child: SafeArea(
         child: Column(
           children: [
-            // Search Header
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -332,10 +345,10 @@ class _SearchPageState extends State<SearchPage> {
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: const Color.fromRGBO(255, 255, 255, 0.1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
                           ),
                           child: TextField(
@@ -375,7 +388,7 @@ class _SearchPageState extends State<SearchPage> {
                       const SizedBox(width: 12),
                       Container(
                         decoration: BoxDecoration(
-                          color: AppColors.accent,
+                          color: Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(

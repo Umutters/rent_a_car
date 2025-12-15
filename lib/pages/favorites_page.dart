@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
+import 'package:rent_a_cart/core/services/database_service.dart';
+import 'package:rent_a_cart/core/widgets/common_states.dart';
 import 'package:rent_a_cart/pages/dashboard/models/car.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/car_card.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,10 +15,12 @@ class FavoritesPage extends StatefulWidget {
 
 class _FavoritesPageState extends State<FavoritesPage> {
   final SupabaseClient supabase = Supabase.instance.client;
+  final DatabaseService _dbService = DatabaseService();
+
   List<Car> _favoriteCars = [];
   bool _isLoading = true;
   String? _errorMessage;
-  late final RealtimeChannel _favoritesChannel;
+  RealtimeChannel? _favoritesChannel;
 
   @override
   void initState() {
@@ -27,28 +31,23 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   @override
   void dispose() {
-    supabase.removeChannel(_favoritesChannel);
+    if (_favoritesChannel != null) {
+      supabase.removeChannel(_favoritesChannel!);
+    }
     super.dispose();
   }
 
   void _subscribeToFavorites() {
-    _favoritesChannel = supabase
-        .channel('public:favorites')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'favorites',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'user_id',
-            value: supabase.auth.currentUser?.id,
-          ),
-          callback: (payload) {
-            print("Favorilerde değişiklik algılandı: $payload");
-            _fetchFavorites();
-          },
-        )
-        .subscribe();
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    _favoritesChannel = _dbService.subscribeFavorites(
+      userId: userId,
+      onChanged: (payload) {
+        print("Favorilerde değişiklik algılandı: $payload");
+        _fetchFavorites();
+      },
+    );
   }
 
   Future<void> _fetchFavorites() async {
@@ -64,22 +63,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
         return;
       }
 
-      // Fetch favorites and join with cars table
-      final response = await supabase
-          .from('favorites')
-          .select('car_id, cars(*)')
-          .eq('user_id', userId);
-
-      print("Gelen Favoriler: $response");
+      final cars = await _dbService.getUserFavorites(userId);
 
       if (mounted) {
-        final List<Car> cars = [];
-        for (var item in response) {
-          if (item['cars'] != null) {
-            cars.add(Car.fromMap(item['cars']));
-          }
-        }
-
         setState(() {
           _favoriteCars = cars;
           _isLoading = false;
@@ -119,20 +105,16 @@ class _FavoritesPageState extends State<FavoritesPage> {
             ),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const LoadingIndicator(message: 'Favoriler yükleniyor...')
                   : _errorMessage != null
-                  ? Center(
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                  ? ErrorMessage(
+                      message: _errorMessage!,
+                      onRetry: _fetchFavorites,
                     )
                   : _favoriteCars.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "Henüz favori araç eklemediniz.",
-                        style: TextStyle(color: Colors.white70),
-                      ),
+                  ? const EmptyState(
+                      message: "Henüz favori araç eklemediniz.",
+                      icon: Icons.favorite_outline,
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -56,7 +56,7 @@ class CarDetailsPage extends StatelessWidget {
               top: MediaQuery.of(context).padding.top + 10,
               left: 20,
               child: CircleAvatar(
-                backgroundColor: Colors.black.withOpacity(0.5),
+                backgroundColor: const Color.fromRGBO(0, 0, 0, 0.5),
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
@@ -169,6 +169,57 @@ class CarDetailsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
+                    // Car Features
+                    if (car.featuresList.isNotEmpty) ...[
+                      Text(
+                        'Features',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: car.featuresList.map((feature) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Color.fromRGBO(AppColors.accent.red, AppColors.accent.green, AppColors.accent.blue, 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Color.fromRGBO(AppColors.accent.red, AppColors.accent.green, AppColors.accent.blue, 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _getFeatureIcon(feature),
+                                  size: 16,
+                                  color: AppColors.accent,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  feature,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: AppColors.accent,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     // Description
                     Text(
                       'Description',
@@ -197,28 +248,35 @@ class CarDetailsPage extends StatelessWidget {
                     // Rent Button
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DateSelectionPage(car: car),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: AppColors.primaryRadialGradient,
                         ),
-                        child: Text(
-                          'Rent Now',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    DateSelectionPage(car: car),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text(
+                            'Rent Now',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -239,7 +297,7 @@ class CarDetailsPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.overlay,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: const Color.fromRGBO(158, 158, 158, 0.1)),
       ),
       child: Column(
         children: [
@@ -263,5 +321,24 @@ class CarDetailsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  IconData _getFeatureIcon(String feature) {
+    switch (feature.toLowerCase()) {
+      case 'klima':
+        return Icons.ac_unit;
+      case 'bluetooth':
+        return Icons.bluetooth;
+      case 'gps':
+        return Icons.gps_fixed;
+      case 'sunroof':
+        return Icons.wb_sunny;
+      case 'park sensörü':
+        return Icons.sensors;
+      case 'cruise control':
+        return Icons.speed;
+      default:
+        return Icons.check_circle;
+    }
   }
 }

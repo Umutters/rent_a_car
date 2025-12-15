@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
+import 'package:rent_a_cart/core/services/database_service.dart';
+import 'package:rent_a_cart/core/widgets/common_states.dart';
+import 'package:rent_a_cart/pages/bookings_page.dart';
 import 'package:rent_a_cart/pages/login_page.dart';
+import 'package:rent_a_cart/pages/profile/widgets/profile_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -13,16 +17,22 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final SupabaseClient supabase = Supabase.instance.client;
+  final DatabaseService _dbService = DatabaseService();
 
   String _fullName = '';
   String _email = '';
   String _avatarUrl = '';
   bool _isLoading = true;
 
+  // Kullanıcı istatistikleri
+  Map<String, dynamic>? _userStats;
+  bool _isLoadingStats = true;
+
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
+    _loadUserStats();
   }
 
   void _loadUserProfile() {
@@ -38,6 +48,34 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loadUserStats() async {
+    final user = supabase.auth.currentUser;
+    if (user != null) {
+      try {
+        final stats = await _dbService.getUserStatistics(user.id);
+        if (mounted) {
+          setState(() {
+            _userStats = stats;
+            _isLoadingStats = false;
+          });
+        }
+      } catch (e) {
+        print('İstatistik yükleme hatası: $e');
+        if (mounted) {
+          setState(() => _isLoadingStats = false);
+        }
+      }
+    } else {
+      setState(() => _isLoadingStats = false);
+    }
+  }
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Yakında eklenecek')));
   }
 
   Future<void> _handleLogout() async {
@@ -100,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       child: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const LoadingIndicator(message: 'Yükleniyor...')
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -108,75 +146,61 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 20),
                     // Profile Header
                     _buildProfileHeader(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+                    // User Statistics
+                    if (!_isLoadingStats && _userStats != null)
+                      UserStatsCard(stats: _userStats!)
+                    else if (_isLoadingStats)
+                      const LoadingIndicator(
+                        message: 'İstatistikler yükleniyor...',
+                      ),
+                    const SizedBox(height: 24),
                     // Menu Items
-                    _buildMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.person_outline,
                       title: 'Hesap Bilgileri',
                       subtitle: 'Kişisel bilgilerinizi düzenleyin',
-                      onTap: () {
-                        // TODO: Navigate to account details
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Yakında eklenecek')),
-                        );
-                      },
+                      onTap: () => _showComingSoon(context),
                     ),
-                    _buildMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.directions_car_outlined,
                       title: 'Rezervasyonlarım',
                       subtitle: 'Geçmiş ve aktif rezervasyonlar',
-                      onTap: () {
-                        // TODO: Navigate to bookings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Yakında eklenecek')),
-                        );
-                      },
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BookingsPage(),
+                        ),
+                      ),
                     ),
-                    _buildMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.payment_outlined,
                       title: 'Ödeme Yöntemleri',
                       subtitle: 'Kayıtlı kartlarınızı yönetin',
-                      onTap: () {
-                        // TODO: Navigate to payment methods
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Yakında eklenecek')),
-                        );
-                      },
+                      onTap: () => _showComingSoon(context),
                     ),
-                    _buildMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.notifications_outlined,
                       title: 'Bildirimler',
                       subtitle: 'Bildirim tercihlerinizi ayarlayın',
-                      onTap: () {
-                        // TODO: Navigate to notifications settings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Yakında eklenecek')),
-                        );
-                      },
+                      onTap: () => _showComingSoon(context),
                     ),
-                    _buildMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.help_outline,
                       title: 'Yardım & Destek',
                       subtitle: 'SSS ve iletişim',
-                      onTap: () {
-                        // TODO: Navigate to help
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Yakında eklenecek')),
-                        );
-                      },
+                      onTap: () => _showComingSoon(context),
                     ),
-                    _buildMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.info_outline,
                       title: 'Hakkında',
                       subtitle: 'Uygulama bilgileri ve sürüm',
-                      onTap: () {
-                        showAboutDialog(
-                          context: context,
-                          applicationName: 'Rent a Car',
-                          applicationVersion: '1.0.0',
-                          applicationLegalese: '© 2025 Umutters',
-                        );
-                      },
+                      onTap: () => showAboutDialog(
+                        context: context,
+                        applicationName: 'Rent a Car',
+                        applicationVersion: '1.0.0',
+                        applicationLegalese: '© 2025 Umutters',
+                      ),
                     ),
                     const SizedBox(height: 16),
                     // Logout Button
@@ -192,34 +216,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildProfileHeader() {
     return Column(
       children: [
-        // Avatar
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.accent, width: 3),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accent.withOpacity(0.3),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: _avatarUrl.isNotEmpty
-                ? Image.network(
-                    _avatarUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildDefaultAvatar(),
-                  )
-                : _buildDefaultAvatar(),
-          ),
-        ),
+        ProfileAvatar(fullName: _fullName, avatarUrl: _avatarUrl),
         const SizedBox(height: 16),
-        // Name
         Text(
           _fullName,
           style: GoogleFonts.plusJakartaSans(
@@ -229,7 +227,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         const SizedBox(height: 4),
-        // Email
         Text(
           _email,
           style: GoogleFonts.plusJakartaSans(
@@ -238,68 +235,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildDefaultAvatar() {
-    return Container(
-      color: AppColors.surface,
-      child: Center(
-        child: Text(
-          _fullName.isNotEmpty ? _fullName[0].toUpperCase() : 'U',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-            color: AppColors.accent,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.accent.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: AppColors.accent, size: 24),
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        trailing: const Icon(
-          Icons.chevron_right,
-          color: AppColors.textSecondary,
-        ),
-      ),
     );
   }
 

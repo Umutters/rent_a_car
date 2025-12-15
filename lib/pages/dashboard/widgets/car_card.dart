@@ -32,12 +32,9 @@ class _CarCardState extends State<CarCard> {
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
-    // Eğer car.id boş ise (hatalı veri), sorgu yapma
     if (widget.car.id.isEmpty || widget.car.id == '0') return;
 
     try {
-      // maybeSingle() yerine select() kullanıyoruz çünkü birden fazla kayıt varsa hata verebilir.
-      // Listeyi kontrol ederek en az bir kayıt varsa favori olarak işaretliyoruz.
       final response = await supabase
           .from('favorites')
           .select()
@@ -65,12 +62,9 @@ class _CarCardState extends State<CarCard> {
       return;
     }
 
-    // Optimistic update
     setState(() {
       isFavorite = !isFavorite;
     });
-
-    // Notify parent immediately if needed (e.g. to remove from list)
     if (widget.onFavoriteChanged != null) {
       widget.onFavoriteChanged!();
     }
@@ -89,14 +83,11 @@ class _CarCardState extends State<CarCard> {
             .eq('car_id', widget.car.id);
       }
     } catch (e) {
-      // Check for Foreign Key Violation (PostgrestException code 23503)
-      // This happens if the user is in auth.users but not in public.users
       if (e is PostgrestException && e.code == '23503') {
         try {
           debugPrint(
             'Foreign Key Violation detected. Attempting to sync user...',
           );
-          // Try to sync user to public.users
           final metadata = user.userMetadata;
           await supabase.from('users').upsert({
             'id': user.id,
@@ -106,21 +97,18 @@ class _CarCardState extends State<CarCard> {
             'updated_at': DateTime.now().toIso8601String(),
           });
 
-          // Retry insert
           if (isFavorite) {
             await supabase.from('favorites').insert({
               'user_id': user.id,
               'car_id': widget.car.id,
             });
           }
-          // If successful, return without reverting
           return;
         } catch (syncError) {
           debugPrint('Sync failed: $syncError');
         }
       }
 
-      // Revert on error
       if (mounted) {
         setState(() {
           isFavorite = !isFavorite;
@@ -176,8 +164,8 @@ class _CarCardState extends State<CarCard> {
                       onTap: _toggleFavorite,
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                        decoration: const BoxDecoration(
+                          color: Color.fromRGBO(255, 255, 255, 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(

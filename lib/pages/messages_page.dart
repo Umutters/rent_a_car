@@ -50,7 +50,7 @@ class _MessagesPageState extends State<MessagesPage>
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: const Color.fromRGBO(255, 255, 255, 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TabBar(
@@ -146,13 +146,13 @@ class _MessagesPageState extends State<MessagesPage>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: notification.isRead
-            ? Colors.white.withOpacity(0.05)
-            : Colors.white.withOpacity(0.15),
+            ? const Color.fromRGBO(255, 255, 255, 0.05)
+            : const Color.fromRGBO(255, 255, 255, 0.15),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: notification.isRead
-              ? Colors.white.withOpacity(0.1)
-              : AppColors.accent.withOpacity(0.3),
+              ? const Color.fromRGBO(255, 255, 255, 0.1)
+              : Color.fromRGBO(AppColors.accent.red, AppColors.accent.green, AppColors.accent.blue, 0.3),
         ),
       ),
       child: Row(
@@ -161,7 +161,7 @@ class _MessagesPageState extends State<MessagesPage>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: notification.iconColor.withOpacity(0.2),
+              color: Color.fromRGBO(notification.iconColor.red, notification.iconColor.green, notification.iconColor.blue, 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(

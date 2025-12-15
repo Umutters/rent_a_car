@@ -323,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  borderSide: const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.3)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

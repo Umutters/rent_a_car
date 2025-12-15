@@ -5,7 +5,9 @@ import 'package:rent_a_cart/pages/dashboard/widgets/greeting_section.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/filter_bar.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/nearby_header.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/car_card.dart';
+import 'package:rent_a_cart/pages/profile_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:rent_a_cart/core/services/database_service.dart';
 
 class DashboardHome extends StatefulWidget {
   const DashboardHome({super.key});
@@ -16,6 +18,7 @@ class DashboardHome extends StatefulWidget {
 
 class _DashboardHomeState extends State<DashboardHome> {
   final SupabaseClient supabase = Supabase.instance.client;
+  final DatabaseService _dbService = DatabaseService();
   String _selectedFilter = 'All';
   List<String> _filters = ['All']; // Dinamik olarak RPC'den çekecek
 
@@ -25,12 +28,34 @@ class _DashboardHomeState extends State<DashboardHome> {
   String _currentCity = 'Şehir Seç'; // Şehir bilgisi
   String? _errorMessage;
 
+  // Lokasyon seçimi için
+  List<Map<String, dynamic>> _locations = [];
+  String? _selectedLocationId;
+
   @override
   void initState() {
     super.initState();
     _fetchTopBrands(); // İlk olarak top brands'ı çek
+    _fetchLocations(); // Lokasyonları çek
     _fetchCars();
     _fetchUserProfile();
+  }
+
+  Future<void> _fetchLocations() async {
+    try {
+      final locations = await _dbService.getActiveLocations();
+      if (mounted) {
+        setState(() {
+          _locations = locations;
+          // İlk lokasyonu varsayılan seç
+          if (locations.isNotEmpty) {
+            _currentCity = locations.first['city'] ?? 'Şehir Seç';
+          }
+        });
+      }
+    } catch (e) {
+      print("Lokasyon getirme hatası: $e");
+    }
   }
 
   void _fetchUserProfile() {
@@ -51,7 +76,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   Future<void> _fetchTopBrands() async {
     try {
       print("Top brands RPC'den getiriliyor...");
-      final topBrandsData = await supabase.rpc('get_top_brands');
+      final topBrandsData = await _dbService.getTopBrands();
       print("Top Brands Verisi: $topBrandsData");
 
       if (mounted) {
@@ -79,14 +104,14 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       late final response;
 
-      // Eğer "All" seçiliyse tüm araçları, değilse brand'a göre filtrelenmiş araçları çek
+      // Araçları car_extras ile birlikte çek
       if (_selectedFilter == 'All') {
-        response = await supabase.from('cars').select();
+        response = await supabase.from('cars').select('*, car_extras(*)');
       } else {
         // Seçilen brand'a ait araçları getir
         response = await supabase
             .from('cars')
-            .select()
+            .select('*, car_extras(*)')
             .eq('brand', _selectedFilter);
       }
 
@@ -117,6 +142,67 @@ class _DashboardHomeState extends State<DashboardHome> {
     }
   }
 
+  void _showLocationPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.5,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Lokasyon Seçin',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            if (_locations.isEmpty)
+              const Center(child: CircularProgressIndicator())
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _locations.length,
+                  itemBuilder: (context, index) {
+                    final loc = _locations[index];
+                    final isSelected = _selectedLocationId == loc['id'];
+                    return ListTile(
+                      leading: Icon(
+                        Icons.location_on,
+                        color: isSelected ? Colors.blue : Colors.grey,
+                      ),
+                      title: Text(loc['name'] ?? ''),
+                      subtitle: Text(
+                        '${loc['city']} - ${loc['address'] ?? ''}',
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: Colors.blue)
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          _selectedLocationId = loc['id'];
+                          _currentCity = loc['city'] ?? 'Şehir Seç';
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -129,8 +215,15 @@ class _DashboardHomeState extends State<DashboardHome> {
               const SizedBox(height: 16),
               DashboardHeader(
                 location: _currentCity.isEmpty ? 'Şehir Seç' : _currentCity,
-                onFilterTap: () {},
-                onProfileTap: () {},
+                onLocationTap: _showLocationPicker,
+                onProfileTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfilePage(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
               GreetingSection(username: _username),
