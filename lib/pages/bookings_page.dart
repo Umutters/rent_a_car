@@ -27,6 +27,8 @@ class _BookingsPageState extends State<BookingsPage> {
   Future<void> _fetchBookings() async {
     try {
       final userId = supabase.auth.currentUser?.id;
+      print('DEBUG: User ID: $userId');
+
       if (userId == null) {
         setState(() {
           _isLoading = false;
@@ -36,7 +38,10 @@ class _BookingsPageState extends State<BookingsPage> {
       }
 
       // View kullanarak daha zengin veri çek (booking_period bilgisi dahil)
+      print('DEBUG: Fetching bookings for user: $userId');
       final response = await _dbService.getUserBookingHistory(userId);
+      print('DEBUG: Bookings response: $response');
+      print('DEBUG: Number of bookings: ${response.length}');
 
       if (mounted) {
         setState(() {
@@ -45,6 +50,7 @@ class _BookingsPageState extends State<BookingsPage> {
         });
       }
     } catch (e) {
+      print('DEBUG: Error fetching bookings: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -213,8 +219,7 @@ class _BookingsPageState extends State<BookingsPage> {
                         itemCount: _bookings.length,
                         itemBuilder: (context, index) {
                           final booking = _bookings[index];
-                          final car = booking['cars'];
-                          return _buildBookingCard(booking, car);
+                          return _buildBookingCard(booking);
                         },
                       ),
               ),
@@ -225,16 +230,13 @@ class _BookingsPageState extends State<BookingsPage> {
     );
   }
 
-  Widget _buildBookingCard(
-    Map<String, dynamic> booking,
-    Map<String, dynamic>? car,
-  ) {
-    if (car == null) return const SizedBox.shrink();
-
+  Widget _buildBookingCard(Map<String, dynamic> booking) {
     final status = booking['status'] ?? 'pending';
     final startDate = DateTime.parse(booking['start_date']);
     final endDate = DateTime.parse(booking['end_date']);
     final totalPrice = booking['total_price'] ?? 0;
+    final carName = booking['car_name'] ?? 'Bilinmeyen Araç';
+    final imageUrl = booking['image_url'] ?? '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -256,7 +258,7 @@ class _BookingsPageState extends State<BookingsPage> {
                   bottomLeft: Radius.circular(16),
                 ),
                 child: Image.network(
-                  car['image_url'] ?? '',
+                  imageUrl,
                   width: 120,
                   height: 120,
                   fit: BoxFit.cover,
@@ -280,7 +282,7 @@ class _BookingsPageState extends State<BookingsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${car['brand']} ${car['model']}',
+                        carName,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -288,28 +290,6 @@ class _BookingsPageState extends State<BookingsPage> {
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on,
-                            size: 14,
-                            color: Colors.white70,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              car['location'] ?? '',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                color: Colors.white70,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 8),
                       // Status Badge
@@ -319,7 +299,12 @@ class _BookingsPageState extends State<BookingsPage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Color.fromRGBO(_getStatusColor(status).red, _getStatusColor(status).green, _getStatusColor(status).blue, 0.2),
+                          color: Color.fromRGBO(
+                            _getStatusColor(status).red,
+                            _getStatusColor(status).green,
+                            _getStatusColor(status).blue,
+                            0.2,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: _getStatusColor(status),

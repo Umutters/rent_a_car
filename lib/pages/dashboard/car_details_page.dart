@@ -85,203 +85,221 @@ class CarDetailsPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${car.brand} ${car.model}',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${car.brand} ${car.model}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.location_on,
-                                  size: 16,
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 16,
+                                    color: AppColors.accent,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    car.location,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 14,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${car.dailyRate} ₺',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
                                   color: AppColors.accent,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  car.location,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 14,
-                                    color: AppColors.textSecondary,
+                              ),
+                              Text(
+                                '/day',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Specs Grid - İlk Satır
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildSpecItem(
+                            Icons.local_gas_station,
+                            car.fuelType,
+                            'Yakıt',
+                          ),
+                          _buildSpecItem(
+                            Icons.settings,
+                            car.transmission,
+                            'Vites',
+                          ),
+                          _buildSpecItem(
+                            Icons.airline_seat_recline_normal,
+                            '${car.seats}',
+                            'Koltuk',
+                          ),
+                          if (car.doors != null)
+                            _buildSpecItem(
+                              Icons.door_front_door,
+                              '${car.doors}',
+                              'Kapı',
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+                      // Car Features
+                      if (car.featuresList.isNotEmpty) ...[
+                        Text(
+                          'Features',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: car.featuresList.map((feature) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color.fromRGBO(
+                                  AppColors.accent.red,
+                                  AppColors.accent.green,
+                                  AppColors.accent.blue,
+                                  0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Color.fromRGBO(
+                                    AppColors.accent.red,
+                                    AppColors.accent.green,
+                                    AppColors.accent.blue,
+                                    0.3,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '${car.dailyRate} ₺',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.accent,
                               ),
-                            ),
-                            Text(
-                              '/day',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _getFeatureIcon(feature),
+                                    size: 16,
+                                    color: AppColors.accent,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    feature,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: AppColors.accent,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            );
+                          }).toList(),
                         ),
+                        const SizedBox(height: 16),
                       ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Specs Grid
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildSpecItem(Icons.speed, car.maxSpeed, 'Max Speed'),
-                        _buildSpecItem(
-                          Icons.timer,
-                          car.acceleration,
-                          '0-100 km/h',
-                        ),
-                        _buildSpecItem(
-                          Icons.local_gas_station,
-                          car.fuelType,
-                          'Fuel',
-                        ),
-                        _buildSpecItem(
-                          Icons.airline_seat_recline_normal,
-                          '${car.seats}',
-                          'Seats',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Car Features
-                    if (car.featuresList.isNotEmpty) ...[
+                      // Description
                       Text(
-                        'Features',
+                        'Description',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: car.featuresList.map((feature) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            car.description.isNotEmpty
+                                ? car.description
+                                : 'Experience the thrill of driving this ${car.brand} ${car.model}. Perfect for city drives and long weekend getaways. Features a ${car.engineCapacity} engine and ${car.transmission} transmission.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              height: 1.5,
                             ),
-                            decoration: BoxDecoration(
-                              color: Color.fromRGBO(AppColors.accent.red, AppColors.accent.green, AppColors.accent.blue, 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Color.fromRGBO(AppColors.accent.red, AppColors.accent.green, AppColors.accent.blue, 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _getFeatureIcon(feature),
-                                  size: 16,
-                                  color: AppColors.accent,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  feature,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    color: AppColors.accent,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
-                    ],
-                    // Description
-                    Text(
-                      'Description',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Text(
-                          car.description.isNotEmpty
-                              ? car.description
-                              : 'Experience the thrill of driving this ${car.brand} ${car.model}. Perfect for city drives and long weekend getaways. Features a ${car.engineCapacity} engine and ${car.transmission} transmission.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                            height: 1.5,
+                      // Rent Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: AppColors.primaryRadialGradient,
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Rent Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: AppColors.primaryRadialGradient,
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DateSelectionPage(car: car),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DateSelectionPage(car: car),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.accent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accent,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
                             ),
-                          ),
-                          child: Text(
-                            'Rent Now',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                            child: Text(
+                              'Rent Now',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -332,10 +350,12 @@ class CarDetailsPage extends StatelessWidget {
       case 'gps':
         return Icons.gps_fixed;
       case 'sunroof':
+      case 'açılır tavan':
         return Icons.wb_sunny;
       case 'park sensörü':
         return Icons.sensors;
       case 'cruise control':
+      case 'hız sabitleyici':
         return Icons.speed;
       default:
         return Icons.check_circle;

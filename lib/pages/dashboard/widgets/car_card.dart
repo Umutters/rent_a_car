@@ -234,33 +234,127 @@ class _CarCardState extends State<CarCard> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color.fromRGBO(255, 255, 255, 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        size: 14,
-                        color: AppColors.iconLight,
+                // Car Extras Info
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.car.location,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppColors.textPrimary,
-                        ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(255, 255, 255, 0.2),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: AppColors.iconLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.car.location,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Transmission
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(255, 255, 255, 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.settings,
+                            size: 14,
+                            color: AppColors.iconLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.car.transmission,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Fuel Type
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(255, 255, 255, 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.local_gas_station,
+                            size: 14,
+                            color: AppColors.iconLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.car.fuelType,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Seats
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(255, 255, 255, 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.airline_seat_recline_normal,
+                            size: 14,
+                            color: AppColors.iconLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${widget.car.seats} Kişi',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
