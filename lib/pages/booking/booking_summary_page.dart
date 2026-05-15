@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
 import 'package:rent_a_cart/pages/dashboard/models/car.dart';
-import 'package:rent_a_cart/pages/dashboard/models/booking.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:rent_a_cart/services/booking_service.dart';
+import 'package:rent_a_cart/services/auth_service.dart';
 
 class BookingSummaryPage extends StatefulWidget {
   final Car car;
@@ -24,11 +24,12 @@ class BookingSummaryPage extends StatefulWidget {
 }
 
 class _BookingSummaryPageState extends State<BookingSummaryPage> {
-  final SupabaseClient supabase = Supabase.instance.client;
+  final BookingService _bookingService = BookingService();
+  final AuthService _authService = AuthService();
   bool _isProcessing = false;
 
   Future<void> _confirmBooking() async {
-    final user = supabase.auth.currentUser;
+    final user = _authService.getCurrentUser();
     if (user == null) {
       ScaffoldMessenger.of(
         context,
@@ -39,18 +40,13 @@ class _BookingSummaryPageState extends State<BookingSummaryPage> {
     setState(() => _isProcessing = true);
 
     try {
-      final booking = Booking(
-        id: '',
-        userId: user.id,
+      await _bookingService.createBooking(
+        userId: _authService.getCurrentUser()!.id,
         carId: widget.car.id,
         startDate: widget.startDate,
         endDate: widget.endDate,
-        totalPrice: widget.totalPrice,
-        status: 'pending',
-        createdAt: DateTime.now(),
+        totalPrice: widget.totalPrice.toDouble(),
       );
-
-      await supabase.from('bookings').insert(booking.toMap());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,16 +60,13 @@ class _BookingSummaryPageState extends State<BookingSummaryPage> {
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Hata oluştu: $e'),
             backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
       }
     }
   }

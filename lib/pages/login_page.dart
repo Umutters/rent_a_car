@@ -12,8 +12,7 @@ import 'package:rent_a_cart/pages/login/widgets/login_divider.dart';
 import 'package:rent_a_cart/pages/login/widgets/social_login_button.dart';
 import 'package:rent_a_cart/pages/login/widgets/sign_up_prompt.dart';
 import 'package:rent_a_cart/pages/sign_up.dart';
-
-import 'package:google_sign_in/google_sign_in.dart' as g_sign_in;
+import 'package:rent_a_cart/services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,25 +22,14 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  final g_sign_in.GoogleSignIn _googleSignIn = g_sign_in.GoogleSignIn.instance;
-
   bool _isPasswordVisible = false;
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _googleSignIn.initialize(
-      serverClientId:
-          '743286900860-ss48fqp9cl44479s7cp7b9iekvritcro.apps.googleusercontent.com',
-    );
-  }
-
+  
   @override
   void dispose() {
     _emailController.dispose();
@@ -177,29 +165,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleGoogleSignIn() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final googleUser = await _googleSignIn.authenticate();
-
-      final googleAuth = googleUser.authentication;
-
-      final idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        throw 'No ID Token found. Make sure you set the serverClientId correctly.';
-      }
-
-      await Supabase.instance.client.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: null,
-      );
-
-      // Sync user to public.users table
-      await _syncUserToPublicTable();
+      await _authService.signInWithGoogle();
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -208,6 +177,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on AuthException catch (error) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error.message),
@@ -217,6 +187,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (error) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Unexpected error occurred: $error'),
@@ -224,34 +195,25 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
   Future<void> _handleEmailPasswordLogin() async {
     setState(() => _isLoading = true);
     try {
-      final response = await Supabase.instance.client.auth.signInWithPassword(
-        password: _passwordController.text,
-        email: _emailController.text,
+      final response = await _authService.signInWithEmail(
+        _emailController.text,
+        _passwordController.text,
       );
 
-      if (response.session != null) {
-        await _syncUserToPublicTable();
-
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const DashboardMainPage()),
-          );
-        }
+      if (response.session != null && mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const DashboardMainPage()),
+        );
       }
     } on AuthException catch (error) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error.message),
@@ -259,29 +221,16 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _syncUserToPublicTable() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
-
-    try {
-      await Supabase.instance.client.from('users').upsert({
-        'id': user.id,
-        'email': user.email,
-        'full_name': user.userMetadata?['full_name'],
-        'avatar_url': user.userMetadata?['avatar_url'],
-        'updated_at': DateTime.now().toIso8601String(),
-      });
     } catch (error) {
-      debugPrint('Error syncing user to public table: $error');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: $error'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
@@ -374,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _sendPasswordResetEmail(String email) async {
     try {
-      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+      await _authService.resetPassword(email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

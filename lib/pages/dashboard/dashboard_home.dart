@@ -5,6 +5,10 @@ import 'package:rent_a_cart/pages/dashboard/widgets/greeting_section.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/filter_bar.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/nearby_header.dart';
 import 'package:rent_a_cart/pages/dashboard/widgets/car_card.dart';
+import 'package:rent_a_cart/pages/location_picker_page.dart';
+import 'package:rent_a_cart/services/car_service.dart';
+import 'package:rent_a_cart/services/location_service.dart';
+import 'package:rent_a_cart/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardHome extends StatefulWidget {
@@ -15,101 +19,144 @@ class DashboardHome extends StatefulWidget {
 }
 
 class _DashboardHomeState extends State<DashboardHome> {
-  final SupabaseClient supabase = Supabase.instance.client;
+  final CarService _carService = CarService();
+  final LocationService _locationService = LocationService();
+  final UserService _userService = UserService();
+  final _supabase = Supabase.instance.client;
+
   String _selectedFilter = 'All';
-  List<String> _filters = ['All']; // Dinamik olarak RPC'den çekecek
+  List<String> _filters = ['All'];
 
   List<Car> _cars = [];
   bool _isLoading = true;
   String _username = 'Driver';
-  String _currentCity = 'Şehir Seç'; // Şehir bilgisi
+  String _currentCity = 'Şehir Seç';
+  String? _selectedLocationId;
   String? _errorMessage;
+  late final RealtimeChannel _favoritesChannel;
 
   @override
   void initState() {
     super.initState();
-    _fetchTopBrands(); // İlk olarak top brands'ı çek
-    _fetchCars();
+    _loadSelectedLocation();
+    _fetchTopBrands();
     _fetchUserProfile();
+    _subscribeToFavorites();
+  }
+
+  @override
+  void dispose() {
+    _supabase.removeChannel(_favoritesChannel);
+    super.dispose();
+  }
+
+  void _subscribeToFavorites() {
+    _favoritesChannel = _supabase
+        .channel('dashboard:favorites')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'favorites',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: _supabase.auth.currentUser?.id,
+          ),
+          callback: (payload) {
+            debugPrint("Dashboard: Favorilerde değişiklik algılandı: $payload");
+            if (mounted) {
+              setState(() {});
+            }
+          },
+        )
+        .subscribe();
+  }
+
+  Future<void> _loadSelectedLocation() async {
+    final location = await _locationService.getSelectedLocation();
+    setState(() {
+      _selectedLocationId = location['id'];
+      _currentCity = location['city'] ?? 'Şehir Seç';
+      _selectedFilter = 'All'; 
+      _cars = []; 
+    });
+    await _fetchTopBrands();
+    await _fetchCars(); 
+  }
+
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LocationPickerPage()),
+    );
+    if (result == true) {
+      await _loadSelectedLocation();
+    }
   }
 
   void _fetchUserProfile() {
-    final user = supabase.auth.currentUser;
-    if (user != null) {
-      final metadata = user.userMetadata;
-      if (metadata != null) {
-        String fullName = metadata['full_name'] ?? metadata['name'] ?? '';
-        if (fullName.isNotEmpty) {
-          setState(() {
-            _username = fullName.split(' ')[0];
-          });
-        }
+    final userMetadata = _userService.getCurrentUserMetadata();
+    if (userMetadata != null) {
+      String fullName = userMetadata['full_name'] ?? '';
+      if (fullName.isNotEmpty) {
+        setState(() {
+          _username = fullName.split(' ')[0];
+        });
       }
     }
   }
 
   Future<void> _fetchTopBrands() async {
     try {
-      print("Top brands RPC'den getiriliyor...");
-      final topBrandsData = await supabase.rpc('get_top_brands');
-      print("Top Brands Verisi: $topBrandsData");
-
+      final brands = await _carService.getTopBrands();
       if (mounted) {
         setState(() {
-          // RPC sonucundan brand isimleri çıkar
-          List<String> brandNames = ['All'];
-          for (var item in topBrandsData) {
-            brandNames.add(item['brand']);
-          }
-          _filters = brandNames;
+          _filters = brands;
         });
       }
     } catch (e) {
       print("Top brands getirme hatası: $e");
-      // Hata olursa varsayılan filtreleri kullan
-      setState(() {
-        _filters = ['All', 'Tesla', 'Mercedes', 'BMW'];
-      });
+      if (mounted) {
+        setState(() {
+          _filters = ['All', 'Tesla', 'Mercedes', 'BMW'];
+        });
+      }
     }
   }
 
   Future<void> _fetchCars() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _cars = []; // Eski verileri temizle
+    });
+
     try {
-      print("Araçlar getiriliyor... (Seçili Filter: $_selectedFilter)");
+      List<Car> cars;
 
-      late final response;
-
-      // Eğer "All" seçiliyse tüm araçları, değilse brand'a göre filtrelenmiş araçları çek
       if (_selectedFilter == 'All') {
-        response = await supabase.from('cars').select();
+        cars = await _carService.getAllCars(locationId: _selectedLocationId);
       } else {
-        // Seçilen brand'a ait araçları getir
-        response = await supabase
-            .from('cars')
-            .select()
-            .eq('brand', _selectedFilter);
+        cars = await _carService.getCarsByBrand(
+          _selectedFilter,
+          locationId: _selectedLocationId,
+        );
       }
-
-      print("Gelen Araç Verisi: $response");
 
       if (mounted) {
         setState(() {
-          _cars = (response as List)
-              .map((carMap) => Car.fromMap(carMap))
-              .toList();
+          _cars = cars;
           _isLoading = false;
           _errorMessage = null;
-
-          // İlk araçtan şehir bilgisini al
-          if (_cars.isNotEmpty && _cars.first.location.isNotEmpty) {
-            _currentCity = _cars.first.location;
-          }
         });
       }
     } catch (e) {
-      print("Araç getirme hatası: $e");
+      debugPrint("Araç getirme hatası: $e");
       if (mounted) {
         setState(() {
+          _cars = [];
           _isLoading = false;
           _errorMessage = "Veriler yüklenirken hata oluştu: $e";
         });
@@ -129,7 +176,7 @@ class _DashboardHomeState extends State<DashboardHome> {
               const SizedBox(height: 16),
               DashboardHeader(
                 location: _currentCity.isEmpty ? 'Şehir Seç' : _currentCity,
-                onFilterTap: () {},
+                onFilterTap: _openLocationPicker,
                 onProfileTap: () {},
               ),
               const SizedBox(height: 24),
@@ -139,9 +186,14 @@ class _DashboardHomeState extends State<DashboardHome> {
                 filters: _filters,
                 selected: _selectedFilter,
                 onSelected: (f) {
-                  setState(() => _selectedFilter = f);
-                  // Seçim değişince araçları yeniden çek
-                  _fetchCars();
+                  if (_selectedFilter != f) {
+                    setState(() {
+                      _selectedFilter = f;
+                      _cars = []; // Eski verileri hemen temizle
+                    });
+                    // Seçim değişince araçları yeniden çek
+                    _fetchCars();
+                  }
                 },
               ),
               const SizedBox(height: 24),
@@ -158,13 +210,38 @@ class _DashboardHomeState extends State<DashboardHome> {
                       ),
                     )
                   : _cars.isEmpty
-                  ? const Center(child: Text("Hiç araç bulunamadı."))
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Text(
+                          _selectedFilter == 'All'
+                              ? "Bu lokasyonda hiç araç bulunamadı."
+                              : "Bu filtreye uygun araç bulunamadı.",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
                   : Column(
                       children: _cars
                           .map(
                             (c) => Padding(
                               padding: const EdgeInsets.only(bottom: 16),
-                              child: CarCard(car: c),
+                              child: CarCard(
+                                key: ValueKey(
+                                  '${c.id}_${_selectedLocationId}_${_selectedFilter}',
+                                ),
+                                car: c,
+                                onFavoriteChanged: () {
+                                  // Favori değiştiğinde UI'yı güncelle
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                              ),
                             ),
                           )
                           .toList(),

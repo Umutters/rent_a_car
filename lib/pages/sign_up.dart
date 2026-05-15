@@ -8,6 +8,7 @@ import 'package:rent_a_cart/pages/login/widgets/custom_text_field.dart';
 import 'package:rent_a_cart/pages/login/widgets/login_button.dart';
 import 'package:rent_a_cart/pages/login/widgets/login_divider.dart';
 import 'package:rent_a_cart/pages/login/widgets/social_login_button.dart';
+import 'package:rent_a_cart/services/auth_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -17,6 +18,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -208,23 +210,17 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await Supabase.instance.client.auth.signUp(
+      final response = await _authService.signUpWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        data: {'full_name': _nameController.text.trim()},
+        fullName: _nameController.text.trim(),
       );
 
       if (mounted) {
         if (response.session != null) {
-          await _syncUserToPublicTable();
-
-          if (mounted) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const DashboardMainPage(),
-              ),
-            );
-          }
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const DashboardMainPage()),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -237,6 +233,7 @@ class _SignUpPageState extends State<SignUpPage> {
       }
     } on AuthException catch (error) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error.message),
@@ -246,6 +243,7 @@ class _SignUpPageState extends State<SignUpPage> {
       }
     } catch (error) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Unexpected error occurred: $error'),
@@ -253,29 +251,6 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _syncUserToPublicTable() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
-
-    try {
-      await Supabase.instance.client.from('users').upsert({
-        'id': user.id,
-        'email': user.email,
-        'full_name': _nameController.text
-            .trim(), // Use text controller for sign up
-        'updated_at': DateTime.now().toIso8601String(),
-      });
-    } catch (error) {
-      debugPrint('Error syncing user to public table: $error');
     }
   }
 }

@@ -12,7 +12,7 @@ class GreetingSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Morning, $username!',
+          'Hoşgeldiniz, $username!',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -21,7 +21,7 @@ class GreetingSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Time to hit the road! Select a car that matches your style.',
+          'Yola çıkma zamanı! Tarzınıza uygun bir araç seçin.',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             color: AppColors.textSecondary,

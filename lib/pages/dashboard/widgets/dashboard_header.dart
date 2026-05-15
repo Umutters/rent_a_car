@@ -21,7 +21,7 @@ class DashboardHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Row(
               children: [
@@ -32,7 +32,7 @@ class DashboardHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'My Location',
+                  'Konumunuz:',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -40,7 +40,7 @@ class DashboardHeader extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 5),
             Text(
               location,
               style: GoogleFonts.plusJakartaSans(

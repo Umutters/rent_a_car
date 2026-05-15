@@ -61,24 +61,24 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     context,
                     screenWidth,
                     screenHeight,
-                    'Welcome to your\ngateway to exquisite\nluxury car rentals',
-                    "We are thrilled to have you on board and can't wait\nto take you on a journey of unparalleled elegance\nand automotive excellence.",
+                    'lüks Araç Kiralama\nDeneyimine Hoş Geldiniz',
+                    "Sizi aramızda görmekten mutluluk duyuyoruz ve sizi benzersiz bir zarafet\nve otomotiv mükemmeliyeti yolculuğuna çıkarmak için sabırsızlanıyoruz.",
                   );
                 case 1:
                   return _buildPage(
                     context,
                     screenWidth,
                     screenHeight,
-                    'Find Your Perfect\nLuxury Ride',
-                    'Browse our exclusive collection of premium vehicles\nand choose the one that matches your style\nand preferences.',
+                    'Mükemmel\nLüks Aracınızı Bulun',
+                    'Özel premium araç koleksiyonumuzu inceleyin\nve tarzınıza ve tercihlerinize uygun olanı seçin.',
                   );
                 case 2:
                   return _buildPage(
                     context,
                     screenWidth,
                     screenHeight,
-                    'Book with Ease\nand Confidence',
-                    'Simple booking process with transparent pricing\nand flexible rental options to suit your needs.',
+                    'Kolay ve Güvenle\nRezervasyon Yapın',
+                    'İhtiyaçlarınıza uygun şeffaf fiyatlandırma\nve esnek kiralama seçenekleri ile basit rezervasyon süreci.',
                   );
                 default:
                   return const SizedBox.shrink();

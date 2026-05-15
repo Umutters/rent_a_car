@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
 import 'package:rent_a_cart/pages/login_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:rent_a_cart/pages/my_bookings_page.dart';
+import 'package:rent_a_cart/pages/settings_page.dart';
+import 'package:rent_a_cart/services/auth_service.dart';
+import 'package:rent_a_cart/services/user_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,7 +15,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final SupabaseClient supabase = Supabase.instance.client;
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
 
   String _fullName = '';
   String _email = '';
@@ -25,18 +29,24 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadUserProfile();
   }
 
-  void _loadUserProfile() {
-    final user = supabase.auth.currentUser;
-    if (user != null) {
-      final metadata = user.userMetadata;
-      setState(() {
-        _email = user.email ?? '';
-        _fullName = metadata?['full_name'] ?? metadata?['name'] ?? 'Kullanıcı';
-        _avatarUrl = metadata?['avatar_url'] ?? '';
-        _isLoading = false;
-      });
-    } else {
-      setState(() => _isLoading = false);
+  Future<void> _loadUserProfile() async {
+    try {
+      final metadata = await _userService.getCurrentUserMetadata();
+      final user = _authService.getCurrentUser();
+
+      if (mounted) {
+        setState(() {
+          _email = user?.email ?? '';
+          _fullName =
+              metadata?['full_name'] ?? metadata?['name'] ?? 'Kullanıcı';
+          _avatarUrl = metadata?['avatar_url'] ?? '';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -82,7 +92,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (shouldLogout == true) {
-      await supabase.auth.signOut();
+      await _authService.signOut();
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -126,9 +136,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       title: 'Rezervasyonlarım',
                       subtitle: 'Geçmiş ve aktif rezervasyonlar',
                       onTap: () {
-                        // TODO: Navigate to bookings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Yakında eklenecek')),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const MyBookingsPage(),
+                          ),
                         );
                       },
                     ),
@@ -144,13 +155,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                     ),
                     _buildMenuItem(
-                      icon: Icons.notifications_outlined,
-                      title: 'Bildirimler',
-                      subtitle: 'Bildirim tercihlerinizi ayarlayın',
+                      icon: Icons.settings_outlined,
+                      title: 'Ayarlar',
+                      subtitle: 'Uygulama ayarlarını yönetin',
                       onTap: () {
-                        // TODO: Navigate to notifications settings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Yakında eklenecek')),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsPage(),
+                          ),
                         );
                       },
                     ),

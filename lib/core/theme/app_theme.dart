@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Centralized app theme configuration
 class AppTheme {
-  AppTheme._(); // Private constructor
+  AppTheme._();
 
   static ThemeData get lightTheme {
     return ThemeData(

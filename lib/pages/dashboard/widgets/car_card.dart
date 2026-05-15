@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_a_cart/core/theme/app_colors.dart';
 import 'package:rent_a_cart/pages/dashboard/car_details_page.dart';
+import 'package:rent_a_cart/services/user_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 //import 'package:rent_a_cart/core/widgets/animations/scale_button.dart';
 import '../models/car.dart';
@@ -19,34 +20,68 @@ class CarCard extends StatefulWidget {
 }
 
 class _CarCardState extends State<CarCard> {
+  final UserService _userService = UserService();
+  final _supabase = Supabase.instance.client;
   bool isFavorite = false;
-  final supabase = Supabase.instance.client;
+  late final RealtimeChannel _favoritesChannel;
 
   @override
   void initState() {
     super.initState();
     _checkIfFavorite();
+    _subscribeToFavorites();
+  }
+
+  @override
+  void dispose() {
+    _supabase.removeChannel(_favoritesChannel);
+    super.dispose();
+  }
+
+  void _subscribeToFavorites() {
+    _favoritesChannel = _supabase
+        .channel('carcard:${widget.car.id}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'favorites',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: _supabase.auth.currentUser?.id,
+          ),
+          callback: (payload) {
+            debugPrint(
+              "CarCard ${widget.car.id}: Favori değişikliği algılandı",
+            );
+            _checkIfFavorite();
+          },
+        )
+        .subscribe();
+  }
+
+  @override
+  void didUpdateWidget(CarCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sadece araç ID değiştiyse yeniden kontrol et
+    if (oldWidget.car.id != widget.car.id ||
+        oldWidget.car.brand != widget.car.brand ||
+        oldWidget.car.model != widget.car.model) {
+      _checkIfFavorite();
+    }
   }
 
   Future<void> _checkIfFavorite() async {
-    final user = supabase.auth.currentUser;
-    if (user == null) return;
-
-    // Eğer car.id boş ise (hatalı veri), sorgu yapma
     if (widget.car.id.isEmpty || widget.car.id == '0') return;
 
     try {
-      // maybeSingle() yerine select() kullanıyoruz çünkü birden fazla kayıt varsa hata verebilir.
-      // Listeyi kontrol ederek en az bir kayıt varsa favori olarak işaretliyoruz.
-      final response = await supabase
-          .from('favorites')
-          .select()
-          .eq('user_id', user.id)
-          .eq('car_id', widget.car.id);
+      final userId = _userService.getCurrentUserId();
+      if (userId == null) return;
 
+      final favoriteIds = await _userService.getUserFavorites(userId);
       if (mounted) {
         setState(() {
-          isFavorite = (response as List).isNotEmpty;
+          isFavorite = favoriteIds.contains(widget.car.id);
         });
       }
     } catch (e) {
@@ -55,9 +90,6 @@ class _CarCardState extends State<CarCard> {
   }
 
   Future<void> _toggleFavorite() async {
-    final user = supabase.auth.currentUser;
-    if (user == null) return;
-
     if (widget.car.id.isEmpty || widget.car.id == '0') {
       ScaffoldMessenger.of(
         context,
@@ -66,65 +98,25 @@ class _CarCardState extends State<CarCard> {
     }
 
     // Optimistic update
-    setState(() {
-      isFavorite = !isFavorite;
-    });
+    final previousState = isFavorite;
+    setState(() => isFavorite = !isFavorite);
 
     // Notify parent immediately if needed (e.g. to remove from list)
-    if (widget.onFavoriteChanged != null) {
-      widget.onFavoriteChanged!();
-    }
+    widget.onFavoriteChanged?.call();
 
     try {
+      final userId = _userService.getCurrentUserId();
+      if (userId == null) return;
+
       if (isFavorite) {
-        await supabase.from('favorites').insert({
-          'user_id': user.id,
-          'car_id': widget.car.id,
-        });
+        await _userService.addToFavorites(userId, widget.car.id);
       } else {
-        await supabase
-            .from('favorites')
-            .delete()
-            .eq('user_id', user.id)
-            .eq('car_id', widget.car.id);
+        await _userService.removeFromFavorites(userId, widget.car.id);
       }
     } catch (e) {
-      // Check for Foreign Key Violation (PostgrestException code 23503)
-      // This happens if the user is in auth.users but not in public.users
-      if (e is PostgrestException && e.code == '23503') {
-        try {
-          debugPrint(
-            'Foreign Key Violation detected. Attempting to sync user...',
-          );
-          // Try to sync user to public.users
-          final metadata = user.userMetadata;
-          await supabase.from('users').upsert({
-            'id': user.id,
-            'email': user.email,
-            'full_name': metadata?['full_name'] ?? metadata?['name'] ?? '',
-            'avatar_url': metadata?['avatar_url'] ?? '',
-            'updated_at': DateTime.now().toIso8601String(),
-          });
-
-          // Retry insert
-          if (isFavorite) {
-            await supabase.from('favorites').insert({
-              'user_id': user.id,
-              'car_id': widget.car.id,
-            });
-          }
-          // If successful, return without reverting
-          return;
-        } catch (syncError) {
-          debugPrint('Sync failed: $syncError');
-        }
-      }
-
       // Revert on error
       if (mounted) {
-        setState(() {
-          isFavorite = !isFavorite;
-        });
+        setState(() => isFavorite = previousState);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('İşlem başarısız: $e')));
@@ -264,11 +256,16 @@ class _CarCardState extends State<CarCard> {
                         color: AppColors.iconLight,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        widget.car.location,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppColors.textPrimary,
+                      Flexible(
+                        child: Text(
+                          widget.car.locations != null
+                              ? '${widget.car.locations?.address ?? 'No address'}, ${widget.car.locations?.country ?? 'No country'}'
+                              : 'Location ID: ${widget.car.locationId}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
